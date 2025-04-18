@@ -2,25 +2,50 @@ version: "3.8"
 
 services:
   auth-service:
-    build: ../Authentication-Service
+    build: ./Authentication-Service
     ports:
       - "5001:5001"
     networks:
       - backend
 
   logic-service:
-    build: ../Business-Logic-Service
+    build: ./Business-Logic-Service
     ports:
       - "5002:5002"
     networks:
       - backend
 
   db-service:
-    build: ../Database-Interaction-Service
+    build: ./Database-Interaction-Service
     ports:
       - "5003:5003"
     networks:
       - backend
+
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: bookmeup
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+
+volumes:
+  pgdata:
 
 networks:
   backend:
