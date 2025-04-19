@@ -1,0 +1,18 @@
+_format_version: "3.0"
+services:
+  - name: auth
+    url: http://auth-service:5001
+    routes:
+      - name: auth-route
+        paths:
+          - /auth
+        strip_path: false
+
+  - name: logic
+    url: http://logic-service:5002
+    routes:
+      - name: logic-route
+        paths:
+          - /appointments
+          - /services
+        strip_path: false
