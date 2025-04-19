@@ -7,6 +7,10 @@ services:
       - "5001:5001"
     networks:
       - backend
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
 
   logic-service:
     image: alexnv67/logic-service
@@ -14,6 +18,10 @@ services:
       - "5002:5002"
     networks:
       - backend
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
 
   db-service:
     image: alexnv67/db-service
@@ -21,6 +29,10 @@ services:
       - "5003:5003"
     networks:
       - backend
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
 
   postgres:
     image: postgres:15
@@ -32,6 +44,10 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - backend
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
 
   adminer:
     image: adminer
@@ -39,6 +55,10 @@ services:
       - "8080:8080"
     networks:
       - backend
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
 
   kong:
     image: kong:3.4
@@ -52,6 +72,10 @@ services:
       - "8001:8001"
     networks:
       - backend
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
 
   portainer:
     image: portainer/portainer-ce
@@ -63,6 +87,10 @@ services:
       - "9000:9000"
     networks:
       - backend
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
 
 volumes:
   postgres_data:
