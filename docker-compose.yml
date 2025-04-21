@@ -19,6 +19,9 @@ services:
 
   db-service:
     build: ../Database-Interaction-Service
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - "5003:5003"
     networks:
@@ -37,6 +40,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - db-net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "user", "-d", "bookmeup"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   adminer:
     image: adminer

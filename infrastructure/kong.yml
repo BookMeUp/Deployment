@@ -15,4 +15,5 @@ services:
         paths:
           - /appointments
           - /services
+          - /profile
         strip_path: false
