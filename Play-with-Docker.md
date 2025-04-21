@@ -14,4 +14,7 @@ Play with Docker: https://labs.play-with-docker.com/
     docker ps
 8. Open port :8000 on node 1 and copy public URL to Postman.
 
-Note: Adminer and Portainer won't work when using Play with Docker.
+Useful ports:
+- Main application :8000
+- Adminer          :8080
+- Portainer        :9000
