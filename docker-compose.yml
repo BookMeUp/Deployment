@@ -6,21 +6,23 @@ services:
     ports:
       - "5001:5001"
     networks:
-      - backend
+      - auth-net
+      - db-net
 
   logic-service:
     build: ../Business-Logic-Service
     ports:
       - "5002:5002"
     networks:
-      - backend
+      - logic-net
+      - db-net
 
   db-service:
     build: ../Database-Interaction-Service
     ports:
       - "5003:5003"
     networks:
-      - backend
+      - db-net
 
   postgres:
     image: postgres:15
@@ -34,7 +36,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - backend
+      - db-net
 
   adminer:
     image: adminer
@@ -42,7 +44,8 @@ services:
     ports:
       - "8080:8080"
     networks:
-      - backend
+      - admin-net
+      - db-net
 
   kong:
     image: kong:3.4
@@ -50,18 +53,14 @@ services:
     environment:
       KONG_DATABASE: "off"
       KONG_DECLARATIVE_CONFIG: /etc/kong/kong.yml
-      # KONG_PROXY_ACCESS_LOG: /dev/stdout
-      # KONG_ADMIN_ACCESS_LOG: /dev/stdout
-      # KONG_PROXY_ERROR_LOG: /dev/stderr
-      # KONG_ADMIN_ERROR_LOG: /dev/stderr
-      # KONG_LOG_LEVEL: debug
     volumes:
       - ./infrastructure/kong.yml:/etc/kong/kong.yml
     ports:
-      - "8000:8000"   # public access
-      - "8001:8001"   # Kong admin API (optional)
+      - "8000:8000"
+      - "8001:8001"
     networks:
-      - backend
+      - auth-net
+      - logic-net
 
   portainer:
     image: portainer/portainer-ce
@@ -73,12 +72,18 @@ services:
     ports:
       - "9000:9000"
     networks:
-      - backend
+      - admin-net
 
 volumes:
   postgres_data:
   portainer_data:
 
 networks:
-  backend:
+  auth-net:
+    driver: bridge
+  logic-net:
+    driver: bridge
+  db-net:
+    driver: bridge
+  admin-net:
     driver: bridge

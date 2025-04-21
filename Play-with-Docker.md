@@ -14,7 +14,16 @@ Play with Docker: https://labs.play-with-docker.com/
     docker ps
 8. Open port :8000 on node 1 and copy public URL to Postman.
 
-Useful ports:
-- Main application :8000
-- Adminer          :8080
-- Portainer        :9000
+--------
+PORTS
+--------
+1. Main application (:8000)
+2. Adminer (:8080)
+    System:   PostgreSQL
+    Server:   postgres
+    Username: user
+    Password: password
+    Database: bookmeup
+3. Portainer (:9000)
+    Username: admin
+    Password: admin.portainer
