@@ -16,4 +16,6 @@ services:
           - /appointments
           - /services
           - /profile
+          - /availability
+          - /available-timeslots
         strip_path: false
