@@ -31,3 +31,8 @@ PORTS
 3. Portainer (http://localhost:9000/)
     Username: admin
     Password: admin.portainer
+4. Prometheus (http://localhost:9090/)
+    Test query: flask_http_request_total
+5. Grafana (http://localhost:3000/)
+    Username: admin
+    Password: admin

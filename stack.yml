@@ -105,9 +105,33 @@ services:
       restart_policy:
         condition: on-failure
 
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus_data:/prometheus
+      - ./infrastructure/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - admin-net
+      - auth-net
+      - logic-net
+      - db-net
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - admin-net
+
 volumes:
   postgres_data:
   portainer_data:
+  prometheus_data:
+  grafana_data:
 
 networks:
   auth-net:
