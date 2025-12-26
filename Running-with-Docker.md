@@ -2,9 +2,9 @@
 
 Run the application by building images from local source code:
 ```bash
-docker compose -p bookmeup-dev up --build -d     # Rebuild with new code and run
-docker compose -p bookmeup-dev down              # Stop and remove containers (images and volumes stay unchanged)
-docker compose -p bookmeup-dev down -v           # Stop and remove containers and volumes (images stay unchanged)
+docker compose -p slotify-dev up --build -d     # Rebuild with new code and run
+docker compose -p slotify-dev down              # Stop and remove containers (images and volumes stay unchanged)
+docker compose -p slotify-dev down -v           # Stop and remove containers and volumes (images stay unchanged)
 ```
 
 ----------------------------------------
@@ -13,8 +13,8 @@ docker compose -p bookmeup-dev down -v           # Stop and remove containers an
 
 Run the application using pre-built images from Docker Hub (no source code needed):
 ```bash
-docker compose -f docker-compose.test.yml -p bookmeup-test up -d     # Start all services
-docker compose -f docker-compose.test.yml -p bookmeup-test down      # Stop all services
+docker compose -f docker-compose.test.yml -p slotify-test up -d     # Start all services
+docker compose -f docker-compose.test.yml -p slotify-test down      # Stop all services
 ```
 
 ----------------------------------------
@@ -24,8 +24,8 @@ docker compose -f docker-compose.test.yml -p bookmeup-test down      # Stop all 
 Deploy to Docker Swarm cluster for production:
 ```bash
 docker swarm init                                  # Init swarm on machine (run only once)
-docker stack deploy -c stack.yml bookmeup-local    # Deploy stack
-docker stack rm bookmeup-local                     # Remove stack and stop app
+docker stack deploy -c stack.yml slotify-local    # Deploy stack
+docker stack rm slotify-local                     # Remove stack and stop app
 ```
 
 Other useful commands:
@@ -44,7 +44,7 @@ docker service ls    # View active services
     - Server:   postgres
     - Username: user
     - Password: password
-    - Database: bookmeup
+    - Database: slotify
 - Portainer (http://localhost:9000/)
     - Username: admin
     - Password: admin.portainer

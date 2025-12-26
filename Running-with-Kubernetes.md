@@ -47,7 +47,7 @@ cd C:\Users\vladu\Desktop\Development\Slotify\Deployment
 kubectl apply -f kubernetes/base/
 
 # 3. Wait for pods to be ready (30-60 seconds)
-kubectl get pods -n bookmeup -w
+kubectl get pods -n slotify -w
 # Press Ctrl+C when all show 1/1 Running
 
 # 4. Start tunnel (keep this terminal open)
@@ -61,8 +61,8 @@ Base URL: http://127.0.0.1
 Test: curl http://127.0.0.1/auth/health
 
 # Adminer
-minikube service adminer -n bookmeup  # In a separate terminal
-# Login: System: PostgreSQL, Server: postgres, User: user, Password: password, DB: bookmeup
+minikube service adminer -n slotify  # In a separate terminal
+# Login: System: PostgreSQL, Server: postgres, User: user, Password: password, DB: slotify
 ```
 
 ## Methods to stop the app
@@ -79,7 +79,7 @@ minikube tunnel
 ### 2. Delete App Only (Minikube Preserved)
 ```bash
 # Delete apps but keep Minikube cluster
-kubectl delete namespace bookmeup
+kubectl delete namespace slotify
 
 # Redeploy
 kubectl apply -f kubernetes/base/
@@ -114,7 +114,7 @@ minikube status
 kubectl get nodes
 
 # Check deployments
-kubectl get all -n bookmeup
+kubectl get all -n slotify
 
 # Check current CPU/memory allocation
 minikube ssh "nproc && free -m"
@@ -124,16 +124,16 @@ minikube ssh "nproc && free -m"
 ## Update Kubernetes Deployment After Pushing New Image
 ```bash
 # Force Kubernetes to pull the new image and restart pods
-kubectl rollout restart deployment/auth-service -n bookmeup
+kubectl rollout restart deployment/auth-service -n slotify
 
 # Watch pods restart
-kubectl get pods -n bookmeup -w
+kubectl get pods -n slotify -w
 
 # Check rollout status
-kubectl rollout status deployment/auth-service -n bookmeup
+kubectl rollout status deployment/auth-service -n slotify
 
 ## Rollback if needed
-kubectl rollout undo deployment/auth-service -n bookmeup
+kubectl rollout undo deployment/auth-service -n slotify
 ```
 
 ## Update Secrets (Passwords, JWT Keys, etc.)
@@ -145,26 +145,26 @@ code kubernetes/base/secrets.yaml
 kubectl apply -f kubernetes/base/secrets.yaml
 
 # 3. Restart all services that use secrets (pods don't auto-reload)
-kubectl rollout restart deployment/auth-service -n bookmeup
-kubectl rollout restart deployment/logic-service -n bookmeup
-kubectl rollout restart deployment/db-service -n bookmeup
-kubectl rollout restart deployment/postgres -n bookmeup
+kubectl rollout restart deployment/auth-service -n slotify
+kubectl rollout restart deployment/logic-service -n slotify
+kubectl rollout restart deployment/db-service -n slotify
+kubectl rollout restart deployment/postgres -n slotify
 
 # 4. Verify all pods are running
-kubectl get pods -n bookmeup
+kubectl get pods -n slotify
 ```
 
 **⚠️ Important:** Never commit secrets.yaml to Git in production! Use `.gitignore` or create secrets manually with:
 ```bash
-kubectl create secret generic bookmeup-secrets -n bookmeup \
+kubectl create secret generic slotify-secrets -n slotify \
   --from-literal=POSTGRES_USER=user \
   --from-literal=POSTGRES_PASSWORD=password \
-  --from-literal=POSTGRES_DB=bookmeup \
+  --from-literal=POSTGRES_DB=slotify \
   --from-literal=JWT_SECRET_KEY=your-secret-key
 ```
 
 ## Other useful commands
 ```bash
 # Check logs from one of the failed pods
-kubectl logs logic-service-7f4bf8fc8-ljb4c -n bookmeup --tail=50
+kubectl logs logic-service-7f4bf8fc8-ljb4c -n slotify --tail=50
 ```

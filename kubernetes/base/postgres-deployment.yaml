@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
-  namespace: bookmeup
+  namespace: slotify
   labels:
     app: postgres
 spec:
@@ -25,17 +25,17 @@ spec:
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
-              name: bookmeup-secrets
+              name: slotify-secrets
               key: POSTGRES_USER
         - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: bookmeup-secrets
+              name: slotify-secrets
               key: POSTGRES_PASSWORD
         - name: POSTGRES_DB
           valueFrom:
             secretKeyRef:
-              name: bookmeup-secrets
+              name: slotify-secrets
               key: POSTGRES_DB
         - name: PGDATA
           value: "/var/lib/postgresql/data/pgdata"  # PostgreSQL data directory inside PVC
@@ -49,7 +49,7 @@ spec:
             - -U
             - user
             - -d
-            - bookmeup
+            - slotify
           initialDelaySeconds: 30  # Wait 30s before first check
           periodSeconds: 10         # Check every 10s
           timeoutSeconds: 5
@@ -61,7 +61,7 @@ spec:
             - -U
             - user
             - -d
-            - bookmeup
+            - slotify
           initialDelaySeconds: 5    # Check earlier than liveness
           periodSeconds: 5
           timeoutSeconds: 3

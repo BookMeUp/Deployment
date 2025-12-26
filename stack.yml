@@ -41,7 +41,7 @@ services:
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: bookmeup
+      POSTGRES_DB: slotify
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:

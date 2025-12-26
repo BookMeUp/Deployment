@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: logic-service
-  namespace: bookmeup
+  namespace: slotify
   labels:
     app: logic-service
 spec:
@@ -26,7 +26,7 @@ spec:
         - name: JWT_SECRET_KEY
           valueFrom:
             secretKeyRef:
-              name: bookmeup-secrets
+              name: slotify-secrets
               key: JWT_SECRET_KEY
         - name: AUTH_SERVICE_URL
           value: "http://auth-service:5001"

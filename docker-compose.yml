@@ -52,7 +52,7 @@ services:
     networks:
       - db-net
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "user", "-d", "bookmeup"]
+      test: ["CMD", "pg_isready", "-U", "user", "-d", "slotify"]
       interval: 5s
       timeout: 3s
       retries: 5

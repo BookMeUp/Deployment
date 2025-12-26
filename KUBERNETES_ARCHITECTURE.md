@@ -15,7 +15,7 @@ You have a **microservices application** running on Kubernetes with:
 ### 1. **Namespace** - Logical Isolation
 
 ```yaml
-namespace: bookmeup
+namespace: slotify
 ```
 
 **What it does:**
@@ -26,11 +26,11 @@ namespace: bookmeup
 **Why it matters:**
 - You can have multiple projects in same cluster
 - `kubectl get pods` → shows all namespaces
-- `kubectl get pods -n bookmeup` → shows only your app
+- `kubectl get pods -n slotify` → shows only your app
 
 **Customization impact:**
 - Change namespace name = isolated environment
-- Can create `bookmeup-dev`, `bookmeup-staging`, `bookmeup-prod`
+- Can create `slotify-dev`, `slotify-staging`, `slotify-prod`
 
 ---
 
@@ -75,10 +75,10 @@ spec:
 **Scaling example:**
 ```powershell
 # Scale auth service to 4 replicas
-kubectl scale deployment auth-service --replicas=4 -n bookmeup
+kubectl scale deployment auth-service --replicas=4 -n slotify
 
 # Scale back to 2
-kubectl scale deployment auth-service --replicas=2 -n bookmeup
+kubectl scale deployment auth-service --replicas=2 -n slotify
 ```
 
 ---
@@ -129,7 +129,7 @@ spec:
 ```
 
 **What it does:**
-- Provides a **stable internal DNS name** (`auth-service.bookmeup.svc.cluster.local`)
+- Provides a **stable internal DNS name** (`auth-service.slotify.svc.cluster.local`)
 - Load balances traffic across pod replicas
 - Abstracts away ephemeral pod IPs
 
@@ -433,7 +433,7 @@ readinessProbe:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: bookmeup-secrets
+  name: slotify-secrets
 stringData:
   POSTGRES_USER: "user"
   POSTGRES_PASSWORD: "password"
@@ -448,7 +448,7 @@ env:
 - name: JWT_SECRET_KEY
   valueFrom:
     secretKeyRef:
-      name: bookmeup-secrets
+      name: slotify-secrets
       key: JWT_SECRET_KEY
 ```
 
@@ -466,10 +466,10 @@ env:
 kubectl apply -f kubernetes/base/secrets.yaml
 
 # 3. Restart pods to use new values
-kubectl rollout restart deployment/auth-service -n bookmeup
-kubectl rollout restart deployment/logic-service -n bookmeup
-kubectl rollout restart deployment/db-service -n bookmeup
-kubectl rollout restart deployment/postgres -n bookmeup
+kubectl rollout restart deployment/auth-service -n slotify
+kubectl rollout restart deployment/logic-service -n slotify
+kubectl rollout restart deployment/db-service -n slotify
+kubectl rollout restart deployment/postgres -n slotify
 ```
 
 **⚠️ Security Note:**
@@ -485,7 +485,7 @@ kubectl rollout restart deployment/postgres -n bookmeup
 
 ```powershell
 # Scale specific service
-kubectl scale deployment auth-service --replicas=5 -n bookmeup
+kubectl scale deployment auth-service --replicas=5 -n slotify
 ```
 
 ---
@@ -497,10 +497,10 @@ kubectl scale deployment auth-service --replicas=5 -n bookmeup
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: bookmeup-staging
+  name: slotify-staging
 
 # Deploy with different config
-kubectl apply -f kubernetes/base/ -n bookmeup-staging
+kubectl apply -f kubernetes/base/ -n slotify-staging
 ```
 
 **Access both:**
@@ -540,8 +540,8 @@ metadata:
 spec:
   tls:
   - hosts:
-    - bookmeup.example.com
-    secretName: bookmeup-tls
+    - slotify.example.com
+    secretName: slotify-tls
 ```
 
 **Requires:**

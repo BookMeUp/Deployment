@@ -8,7 +8,7 @@ Play with Docker: https://labs.play-with-docker.com/
 4. (Optional) Check node status:
     docker node ls
 5. Clone stack.yml and kong.yml on node 1:
-    git clone https://github.com/BookMeUp/Deployment.git
+    git clone https://github.com/Slotify/Deployment.git
 6. Deploy using classic Docker Swarm commands.
 7. (Optional) Check which services run on the current node:
     docker ps
@@ -23,7 +23,7 @@ PORTS
     Server:   postgres
     Username: user
     Password: password
-    Database: bookmeup
+    Database: slotify
 3. Portainer (:9000)
     Username: admin
     Password: admin.portainer
