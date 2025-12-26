@@ -58,11 +58,14 @@ minikube tunnel
 ```bash
 # Application
 Base URL: http://127.0.0.1
-Test: curl http://127.0.0.1/auth/health
 
-# Adminer
-minikube service adminer -n slotify  # In a separate terminal
+# Adminer (Database Management)
+URL: http://127.0.0.1:8081
 # Login: System: PostgreSQL, Server: postgres, User: user, Password: password, DB: slotify
+
+# Rancher (Kubernetes Management)
+URL: https://127.0.0.1:8443
+# Password: admin (changed on first login: rancher.password)
 ```
 
 ## Methods to stop the app
@@ -115,6 +118,9 @@ kubectl get nodes
 
 # Check deployments
 kubectl get all -n slotify
+
+# Check Rancher (Kubernetes management UI)
+kubectl get pods -n cattle-system
 
 # Check current CPU/memory allocation
 minikube ssh "nproc && free -m"
