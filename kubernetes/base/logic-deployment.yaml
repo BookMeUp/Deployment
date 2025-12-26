@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logic-service
+  namespace: bookmeup
+  labels:
+    app: logic-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: logic-service
+  template:
+    metadata:
+      labels:
+        app: logic-service
+    spec:
+      containers:
+      - name: logic-service
+        image: alexnv67/logic-service:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5002
+          name: http
+        env:
+        - name: JWT_SECRET_KEY
+          value: "super-secret-jwt-key-change-in-production"
+        - name: AUTH_SERVICE_URL
+          value: "http://auth-service:5001"
+        - name: DB_SERVICE_URL
+          value: "http://db-service:5003"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5002
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5002
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"

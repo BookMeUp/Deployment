@@ -19,7 +19,7 @@ docker compose -f docker-compose.test.yml -p bookmeup-test down      # Stop all 
 
 ----------------------------------------
 
-### Production Deployment (Docker Swarm)
+### Production Environment (Swarm)
 
 Deploy to Docker Swarm cluster for production:
 ```bash

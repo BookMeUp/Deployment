@@ -1,0 +1,78 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bookmeup-ingress
+  namespace: bookmeup
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      # Authentication Service
+      - path: /auth(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: auth-service
+            port:
+              number: 5001
+      
+      # Business Logic Service - specific paths
+      - path: /services(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: logic-service
+            port:
+              number: 5002
+      
+      - path: /appointments(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: logic-service
+            port:
+              number: 5002
+      
+      - path: /availability(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: logic-service
+            port:
+              number: 5002
+      
+      - path: /staff(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: logic-service
+            port:
+              number: 5002
+      
+      - path: /profile(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: logic-service
+            port:
+              number: 5002
+      
+      - path: /available-timeslots(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: logic-service
+            port:
+              number: 5002
+      
+      # Health check
+      - path: /health
+        pathType: Exact
+        backend:
+          service:
+            name: logic-service
+            port:
+              number: 5002

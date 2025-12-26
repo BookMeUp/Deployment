@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adminer
+  namespace: bookmeup
+  labels:
+    app: adminer
+spec:
+  replicas: 1  # No need for multiple instances
+  selector:
+    matchLabels:
+      app: adminer
+  template:
+    metadata:
+      labels:
+        app: adminer
+    spec:
+      containers:
+      - name: adminer
+        image: adminer:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: ADMINER_DEFAULT_SERVER
+          value: "postgres"  # Pre-fills server name in login form
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"

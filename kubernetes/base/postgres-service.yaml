@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: bookmeup
+  labels:
+    app: postgres
+spec:
+  type: ClusterIP  # Internal only, not exposed outside cluster
+  selector:
+    app: postgres  # Routes traffic to pods with this label
+  ports:
+  - port: 5432         # Service listens on this port
+    targetPort: 5432   # Forwards to container's port
+    protocol: TCP
+    name: postgres

@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-service
+  namespace: bookmeup
+  labels:
+    app: db-service
+spec:
+  replicas: 2  # Two instances for high availability
+  selector:
+    matchLabels:
+      app: db-service
+  template:
+    metadata:
+      labels:
+        app: db-service
+    spec:
+      containers:
+      - name: db-service
+        image: alexnv67/db-service:latest
+        imagePullPolicy: Always  # Always pull latest image
+        ports:
+        - containerPort: 5003
+          name: http
+        env:
+        - name: POSTGRES_USER
+          value: "user"
+        - name: POSTGRES_PASSWORD
+          value: "password"
+        - name: POSTGRES_DB
+          value: "bookmeup"
+        - name: POSTGRES_HOST
+          value: "postgres"  # Service name!
+        - name: POSTGRES_PORT
+          value: "5432"
+        livenessProbe:
+          httpGet:
+            path: /health      # Your Flask app should have this endpoint
+            port: 5003
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5003
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
