@@ -24,7 +24,10 @@ spec:
           name: http
         env:
         - name: JWT_SECRET_KEY
-          value: "super-secret-jwt-key-change-in-production"
+          valueFrom:
+            secretKeyRef:
+              name: bookmeup-secrets
+              key: JWT_SECRET_KEY
         - name: AUTH_SERVICE_URL
           value: "http://auth-service:5001"
         - name: DB_SERVICE_URL

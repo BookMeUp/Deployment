@@ -136,6 +136,33 @@ kubectl rollout status deployment/auth-service -n bookmeup
 kubectl rollout undo deployment/auth-service -n bookmeup
 ```
 
+## Update Secrets (Passwords, JWT Keys, etc.)
+```bash
+# 1. Edit the secrets file
+code kubernetes/base/secrets.yaml
+
+# 2. Apply the updated secret
+kubectl apply -f kubernetes/base/secrets.yaml
+
+# 3. Restart all services that use secrets (pods don't auto-reload)
+kubectl rollout restart deployment/auth-service -n bookmeup
+kubectl rollout restart deployment/logic-service -n bookmeup
+kubectl rollout restart deployment/db-service -n bookmeup
+kubectl rollout restart deployment/postgres -n bookmeup
+
+# 4. Verify all pods are running
+kubectl get pods -n bookmeup
+```
+
+**⚠️ Important:** Never commit secrets.yaml to Git in production! Use `.gitignore` or create secrets manually with:
+```bash
+kubectl create secret generic bookmeup-secrets -n bookmeup \
+  --from-literal=POSTGRES_USER=user \
+  --from-literal=POSTGRES_PASSWORD=password \
+  --from-literal=POSTGRES_DB=bookmeup \
+  --from-literal=JWT_SECRET_KEY=your-secret-key
+```
+
 ## Other useful commands
 ```bash
 # Check logs from one of the failed pods

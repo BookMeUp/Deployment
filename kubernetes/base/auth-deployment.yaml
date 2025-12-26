@@ -24,7 +24,10 @@ spec:
           name: http
         env:
         - name: JWT_SECRET_KEY
-          value: "super-secret-jwt-key-change-in-production"
+          valueFrom:
+            secretKeyRef:
+              name: bookmeup-secrets
+              key: JWT_SECRET_KEY
         - name: DB_SERVICE_URL
           value: "http://db-service:5003"  # Uses Service DNS name
         livenessProbe:

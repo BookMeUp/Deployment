@@ -425,31 +425,57 @@ readinessProbe:
 
 ---
 
-### 5. **Environment Variables**
+### 5. **Environment Variables & Secrets** ✅ IMPLEMENTED
 
-**Current:**
+**How it works:**
+```yaml
+# secrets.yaml - Central secret storage
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bookmeup-secrets
+stringData:
+  POSTGRES_USER: "user"
+  POSTGRES_PASSWORD: "password"
+  JWT_SECRET_KEY: "super-secret-jwt-key"
+```
+
+**Deployments reference it:**
 ```yaml
 env:
 - name: DB_SERVICE_URL
-  value: "http://db-service:5003"
-- name: JWT_SECRET_KEY
-  value: "super-secret-key"
-```
-
-**Better approach (Secrets):**
-```yaml
-env:
+  value: "http://db-service:5003"  # Non-sensitive = plain text
 - name: JWT_SECRET_KEY
   valueFrom:
     secretKeyRef:
-      name: app-secrets
-      key: jwt-secret
+      name: bookmeup-secrets
+      key: JWT_SECRET_KEY
 ```
 
-**Why:**
-- ✅ Encrypted at rest
-- ✅ Not visible in YAML files
-- ✅ Can be rotated without code changes
+**Benefits:**
+- ✅ Centralized secret management (one Secret for all services)
+- ✅ Base64 encoded (better than plain text)
+- ✅ Can be encrypted at rest in etcd
+- ✅ Easy credential rotation
+- ✅ RBAC-controlled access
+
+**Updating secrets:**
+```powershell
+# 1. Edit secrets.yaml
+# 2. Apply changes
+kubectl apply -f kubernetes/base/secrets.yaml
+
+# 3. Restart pods to use new values
+kubectl rollout restart deployment/auth-service -n bookmeup
+kubectl rollout restart deployment/logic-service -n bookmeup
+kubectl rollout restart deployment/db-service -n bookmeup
+kubectl rollout restart deployment/postgres -n bookmeup
+```
+
+**⚠️ Security Note:**
+- Secrets are base64 encoded, NOT encrypted by default
+- Anyone with namespace access can decode them
+- For production: Enable etcd encryption or use external secret managers
 
 ---
 
