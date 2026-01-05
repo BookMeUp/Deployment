@@ -11,9 +11,17 @@ choco install minikube -y
 
 # 4. Install kubectl
 choco install kubernetes-cli -y
+
+# 5. Install Helm (Kubernetes package manager)
+choco install kubernetes-helm -y
+
+# 6. Add Helm repositories
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
 ```
 
-## First-Time Setup After Installation
+
+## First-Time Application Setup
 ```bash
 # 1. Start Docker Desktop (from Start Menu)
 
@@ -24,35 +32,31 @@ minikube start --driver=docker --cpus=4 --memory=4096
 kubectl cluster-info
 kubectl get nodes
 
-# 4. Install Ingress addon
-minikube addons enable ingress
+# 4. Ingress Setup ('ingress-nginx' namespace)
+minikube addons enable ingress      # Install Ingress addon
+kubectl get pods -n ingress-nginx   # Wait for Ingress controller (1-2 minutes).
+kubectl patch svc ingress-nginx-controller -n ingress-nginx -p '{\"spec\":{\"type\":\"LoadBalancer\"}}' # Patch to LoadBalancer
 
-# 5. Wait for Ingress controller (1-2 minutes)
-kubectl get pods -n ingress-nginx -w
-# Press Ctrl+C when ingress-nginx-controller shows Running
+# 5. Rancher Setup ('cattle-system' namespace)
+kubectl apply -f kubernetes/rancher/        # Deploy Rancher (Kubernetes management UI)
+kubectl get pods -n cattle-system           # Wait for Rancher pod (1-2 minutes)
 
-# 6. Patch Ingress controller to LoadBalancer (required for tunnel)
-kubectl patch svc ingress-nginx-controller -n ingress-nginx -p @'
-{"spec":{"type":"LoadBalancer"}}
-'@
-```
+# 6. Monitoring Setup ('monitoring' namespace)
+helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false --set grafana.adminPassword=admin   # Install kube-prometheus-stack
+kubectl get pods -n monitoring   # Wait for monitoring pods (1-2 minutes)
+kubectl patch svc kube-prometheus-stack-grafana -n monitoring -p '{\"spec\":{\"type\":\"LoadBalancer\"}}' # Patch to LoadBalancer
+kubectl patch svc kube-prometheus-stack-prometheus -n monitoring -p '{\"spec\":{\"type\":\"LoadBalancer\"}}' # Patch to LoadBalancer
+kubectl edit svc kube-prometheus-stack-grafana -n monitoring # Find: port: 80 → Change to: port: 3000 → Save and exit
 
-## Running the app with Kubernetes (minikube)
-```bash
-# 1. Start Minikube
-minikube start
+# 7. Application Deployment ('slotify' namespace)
+kubectl apply -f kubernetes/base/namespace.yaml  # From Deployment folder
+kubectl apply -f kubernetes/base/                # From Deployment folder
+kubectl get pods -n slotify                      # Wait for pods to be ready (30-60 seconds)
 
-# 2. Deploy application (first time only)
-cd C:\Users\vladu\Desktop\Development\Slotify\Deployment
-kubectl apply -f kubernetes/base/
-
-# 3. Wait for pods to be ready (30-60 seconds)
-kubectl get pods -n slotify -w
-# Press Ctrl+C when all show 1/1 Running
-
-# 4. Start tunnel (keep this terminal open)
+# 8. Start tunnel (keep this terminal open)
 minikube tunnel
 ```
+
 
 ## Accessing the app
 ```bash
@@ -65,67 +69,16 @@ URL: http://127.0.0.1:8081
 
 # Rancher (Kubernetes Management)
 URL: https://127.0.0.1:8443
-# Password: admin (changed on first login: rancher.password)
+# Username: admin, Password: admin (changed on first login: Og85gVv4INdGRnCn)
+
+# Grafana (Monitoring Dashboard - if monitoring installed)
+URL: http://127.0.0.1:3000
+# Login: admin / admin
+
+# Prometheus (Metrics Database - if monitoring installed)
+URL: http://127.0.0.1:9090
 ```
 
-## Methods to stop the app
-### 1. Quick stop (Everything Preserved)
-```bash
-# Stop tunnel (Ctrl+C in tunnel terminal)
-minikube stop
-
-# Resume later (CPU/memory/addons/deployments all preserved!)
-minikube start
-minikube tunnel
-```
-
-### 2. Delete App Only (Minikube Preserved)
-```bash
-# Delete apps but keep Minikube cluster
-kubectl delete namespace slotify
-
-# Redeploy
-kubectl apply -f kubernetes/base/
-minikube tunnel
-```
-
-### 3. Complete Reset (Everything Lost)
-```bash
-# Delete entire cluster
-minikube delete
-
-# Recreate from scratch (MUST specify settings again!)
-minikube start --driver=docker --cpus=4 --memory=4096
-minikube addons enable ingress
-kubectl get pods -n ingress-nginx -w  # Wait for Running
-kubectl patch svc ingress-nginx-controller -n ingress-nginx -p @'
-{"spec":{"type":"LoadBalancer"}}
-'@
-kubectl apply -f kubernetes/base/
-minikube tunnel
-```
-
-## Quick Health Check
-```bash
-# Check Docker
-docker ps
-
-# Check Minikube
-minikube status
-
-# Check kubectl
-kubectl get nodes
-
-# Check deployments
-kubectl get all -n slotify
-
-# Check Rancher (Kubernetes management UI)
-kubectl get pods -n cattle-system
-
-# Check current CPU/memory allocation
-minikube ssh "nproc && free -m"
-# Expected: 4 CPUs, ~3950 MB memory
-```
 
 ## Update Kubernetes Deployment After Pushing New Image
 ```bash
@@ -141,6 +94,7 @@ kubectl rollout status deployment/auth-service -n slotify
 ## Rollback if needed
 kubectl rollout undo deployment/auth-service -n slotify
 ```
+
 
 ## Update Secrets (Passwords, JWT Keys, etc.)
 ```bash
@@ -160,17 +114,22 @@ kubectl rollout restart deployment/postgres -n slotify
 kubectl get pods -n slotify
 ```
 
-**⚠️ Important:** Never commit secrets.yaml to Git in production! Use `.gitignore` or create secrets manually with:
-```bash
-kubectl create secret generic slotify-secrets -n slotify \
-  --from-literal=POSTGRES_USER=user \
-  --from-literal=POSTGRES_PASSWORD=password \
-  --from-literal=POSTGRES_DB=slotify \
-  --from-literal=JWT_SECRET_KEY=your-secret-key
-```
 
-## Other useful commands
+## Useful commands
 ```bash
-# Check logs from one of the failed pods
-kubectl logs logic-service-7f4bf8fc8-ljb4c -n slotify --tail=50
+minikube start                   # Start cluster
+minikube tunnel                  # Start tunnel (keep terminal open)
+minikube status
+minikube ssh "nproc && free -m"  # Check current CPU/memory allocation
+minikube stop                    # Stop cluster
+minikube delete                  # Delete cluster
+
+kubectl cluster-info
+kubectl get nodes
+kubectl get all -n {namespace}        # List pods, services, deployments and replica sets
+kubectl get pods -n {namespace}       # List pods
+kubectl get svc -n {namespace}        # List services
+kubectl delete namespace {namespace}  # Delete namespace (doesn't affect cluster)
+
+kubectl logs logic-service-7f4bf8fc8-ljb4c -n slotify --tail=50  # Check logs from one of the failed pods
 ```

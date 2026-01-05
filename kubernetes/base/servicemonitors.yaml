@@ -1,0 +1,50 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: auth-service-monitor
+  namespace: slotify
+  labels:
+    app: auth-service
+spec:
+  selector:
+    matchLabels:
+      app: auth-service
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 5s
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: logic-service-monitor
+  namespace: slotify
+  labels:
+    app: logic-service
+spec:
+  selector:
+    matchLabels:
+      app: logic-service
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 5s
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: db-service-monitor
+  namespace: slotify
+  labels:
+    app: db-service
+spec:
+  selector:
+    matchLabels:
+      app: db-service
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 5s
