@@ -6,26 +6,26 @@
 #
 # Usage:
 #   # Install everything (application + Rancher + monitoring)
-#   helm install slotify ./slotify-chart --namespace slotify --create-namespace
+#   helm install slotify ./helm --namespace slotify --create-namespace
 #
 #   # Install without Rancher (Kubernetes management UI)
-#   helm install slotify ./slotify-chart --namespace slotify --create-namespace \
+#   helm install slotify ./helm --namespace slotify --create-namespace \
 #     --set rancher.enabled=false
 #
 #   # Install without monitoring (Prometheus + Grafana)
-#   helm install slotify ./slotify-chart --namespace slotify --create-namespace \
+#   helm install slotify ./helm --namespace slotify --create-namespace \
 #     --set kubePrometheusStack.enabled=false
 #
 #   # Install base application only
-#   helm install slotify ./slotify-chart --namespace slotify --create-namespace \
+#   helm install slotify ./helm --namespace slotify --create-namespace \
 #     --set rancher.enabled=false \
 #     --set kubePrometheusStack.enabled=false
 #
 #   # Customize specific values
-#   helm install slotify ./slotify-chart --set authService.replicas=3
+#   helm install slotify ./helm --set authService.replicas=3
 #
 #   # Use custom values file
-#   helm install slotify ./slotify-chart -f custom-values.yaml
+#   helm install slotify ./helm -f custom-values.yaml
 # ==============================================================================
 
 # ------------------------------------------------------------------------------

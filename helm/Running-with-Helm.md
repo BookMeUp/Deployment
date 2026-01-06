@@ -38,7 +38,7 @@ minikube addons enable ingress
 kubectl get pods -n ingress-nginx  # Wait for Ingress controller pods to be Running (1-2 minutes)
 
 # 5. Install Slotify (Application + Rancher + Monitoring - all in one!)
-helm install slotify ./slotify-chart -n slotify --create-namespace # From Deployment folder
+helm install slotify ./helm -n slotify --create-namespace # From Deployment folder
 
 # 6. Wait for all pods to be ready (2-4 minutes)
 kubectl get pods -n slotify           # Watch application pods
