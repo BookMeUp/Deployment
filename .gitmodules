@@ -1,0 +1,9 @@
+[submodule "auth-service"]
+	path = auth-service
+	url = https://github.com/BookMeUp/slotify-auth-service.git
+[submodule "business-service"]
+	path = business-service
+	url = https://github.com/BookMeUp/slotify-business-service.git
+[submodule "database-service"]
+	path = database-service
+	url = https://github.com/BookMeUp/slotify-database-service.git
