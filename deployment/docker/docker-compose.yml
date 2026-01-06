@@ -1,6 +1,6 @@
 services:
   auth-service:
-    build: ../../Authentication-Service
+    build: ../../auth-service
     ports:
       - "${AUTH_SERVICE_PORT}:5001"
     environment:
@@ -11,7 +11,7 @@ services:
       - db-net
 
   logic-service:
-    build: ../../Business-Logic-Service
+    build: ../../business-service
     ports:
       - "${LOGIC_SERVICE_PORT}:5002"
     environment:
@@ -23,7 +23,7 @@ services:
       - db-net
 
   db-service:
-    build: ../../Database-Interaction-Service
+    build: ../../database-service
     depends_on:
       postgres:
         condition: service_healthy
