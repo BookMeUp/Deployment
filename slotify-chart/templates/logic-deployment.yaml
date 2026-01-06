@@ -1,0 +1,73 @@
+{{- if .Values.logicService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logic-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: logic-service
+    {{- range $key, $value := .Values.commonLabels }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.logicService.replicas }}
+  selector:
+    matchLabels:
+      app: logic-service
+  template:
+    metadata:
+      labels:
+        app: logic-service
+    spec:
+      containers:
+      - name: logic-service
+        image: {{ .Values.logicService.image.repository }}:{{ .Values.logicService.image.tag }}
+        imagePullPolicy: {{ .Values.logicService.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.logicService.service.targetPort }}
+          name: http
+        env:
+        - name: FLASK_ENV
+          value: {{ .Values.commonEnv.flaskEnv | quote }}
+        - name: LOG_LEVEL
+          value: {{ .Values.commonEnv.logLevel | quote }}
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: slotify-secrets
+              key: JWT_SECRET_KEY
+        - name: AUTH_SERVICE_URL
+          value: {{ .Values.commonEnv.authServiceUrl | quote }}
+        - name: DB_SERVICE_URL
+          value: {{ .Values.commonEnv.dbServiceUrl | quote }}
+        {{- range $key, $value := .Values.logicService.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- if .Values.logicService.livenessProbe.enabled }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.logicService.livenessProbe.path }}
+            port: {{ .Values.logicService.service.targetPort }}
+          initialDelaySeconds: {{ .Values.logicService.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.logicService.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.logicService.livenessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.logicService.livenessProbe.failureThreshold }}
+        {{- end }}
+        {{- if .Values.logicService.readinessProbe.enabled }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.logicService.readinessProbe.path }}
+            port: {{ .Values.logicService.service.targetPort }}
+          initialDelaySeconds: {{ .Values.logicService.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.logicService.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.logicService.readinessProbe.timeoutSeconds }}
+        {{- end }}
+        resources:
+          requests:
+            memory: {{ .Values.logicService.resources.requests.memory }}
+            cpu: {{ .Values.logicService.resources.requests.cpu }}
+          limits:
+            memory: {{ .Values.logicService.resources.limits.memory }}
+            cpu: {{ .Values.logicService.resources.limits.cpu }}
+{{- end }}

@@ -1,0 +1,90 @@
+{{- if .Values.rancher.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rancher
+  namespace: {{ .Values.rancher.namespace }}
+  labels:
+    app: rancher
+    {{- range $key, $value := .Values.commonLabels }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.rancher.replicas }}
+  selector:
+    matchLabels:
+      app: rancher
+  template:
+    metadata:
+      labels:
+        app: rancher
+    spec:
+      serviceAccountName: rancher
+      containers:
+      - name: rancher
+        image: {{ .Values.rancher.image.repository }}:{{ .Values.rancher.image.tag }}
+        imagePullPolicy: {{ .Values.rancher.image.pullPolicy }}
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        - containerPort: 443
+          name: https
+          protocol: TCP
+        env:
+        - name: CATTLE_BOOTSTRAP_PASSWORD
+          value: {{ .Values.rancher.bootstrapPassword | quote }}
+        resources:
+          requests:
+            memory: {{ .Values.rancher.resources.requests.memory }}
+            cpu: {{ .Values.rancher.resources.requests.cpu }}
+          limits:
+            memory: {{ .Values.rancher.resources.limits.memory }}
+            cpu: {{ .Values.rancher.resources.limits.cpu }}
+        {{- if .Values.rancher.livenessProbe.enabled }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.rancher.livenessProbe.path }}
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: {{ .Values.rancher.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.rancher.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.rancher.livenessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.rancher.livenessProbe.failureThreshold }}
+        {{- end }}
+        {{- if .Values.rancher.readinessProbe.enabled }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.rancher.readinessProbe.path }}
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: {{ .Values.rancher.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.rancher.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.rancher.readinessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.rancher.readinessProbe.failureThreshold }}
+        {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.rancher.service.name }}
+  namespace: {{ .Values.rancher.namespace }}
+  labels:
+    app: rancher
+    {{- range $key, $value := .Values.commonLabels }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+spec:
+  type: {{ .Values.rancher.service.type }}
+  selector:
+    app: rancher
+  ports:
+  - name: https
+    port: {{ .Values.rancher.service.httpsPort }}
+    targetPort: 443
+    protocol: TCP
+  - name: http
+    port: {{ .Values.rancher.service.httpPort }}
+    targetPort: 80
+    protocol: TCP
+{{- end }}

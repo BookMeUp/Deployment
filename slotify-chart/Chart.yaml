@@ -1,0 +1,20 @@
+apiVersion: v2
+name: slotify
+description: A Helm chart for Slotify - Appointment Booking Microservices Application
+type: application
+
+# Chart version - semantic versioning (increment when chart changes)
+version: 0.1.0
+
+# Application version - the version of your Docker images
+appVersion: "latest"
+
+# Minimum Kubernetes version required
+kubeVersion: ">=1.19.0"
+
+# Dependencies - External Helm charts
+dependencies:
+  - name: kube-prometheus-stack
+    version: "~65.0.0"  # Use latest 65.x version
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: kube-prometheus-stack.enabled

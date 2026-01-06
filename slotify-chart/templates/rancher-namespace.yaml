@@ -1,0 +1,12 @@
+{{- if .Values.rancher.enabled }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.rancher.namespace }}
+  labels:
+    name: {{ .Values.rancher.namespace }}
+    app: rancher
+    {{- range $key, $value := .Values.commonLabels }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+{{- end }}

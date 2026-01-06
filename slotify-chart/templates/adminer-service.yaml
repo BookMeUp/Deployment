@@ -1,0 +1,21 @@
+{{- if .Values.adminer.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.adminer.service.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: adminer
+    {{- range $key, $value := .Values.commonLabels }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+spec:
+  type: {{ .Values.adminer.service.type }}
+  selector:
+    app: adminer
+  ports:
+  - port: {{ .Values.adminer.service.port }}
+    targetPort: {{ .Values.adminer.service.targetPort }}
+    protocol: TCP
+    name: http
+{{- end }}

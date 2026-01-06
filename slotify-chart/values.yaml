@@ -1,0 +1,563 @@
+# ==============================================================================
+# Slotify Helm Chart - Configuration Values
+# ==============================================================================
+# This file contains all configurable parameters for the Slotify application.
+# Modify these values to customize your deployment.
+#
+# Usage:
+#   # Install everything (application + Rancher + monitoring)
+#   helm install slotify ./slotify-chart --namespace slotify --create-namespace
+#
+#   # Install without Rancher (Kubernetes management UI)
+#   helm install slotify ./slotify-chart --namespace slotify --create-namespace \
+#     --set rancher.enabled=false
+#
+#   # Install without monitoring (Prometheus + Grafana)
+#   helm install slotify ./slotify-chart --namespace slotify --create-namespace \
+#     --set kubePrometheusStack.enabled=false
+#
+#   # Install base application only
+#   helm install slotify ./slotify-chart --namespace slotify --create-namespace \
+#     --set rancher.enabled=false \
+#     --set kubePrometheusStack.enabled=false
+#
+#   # Customize specific values
+#   helm install slotify ./slotify-chart --set authService.replicas=3
+#
+#   # Use custom values file
+#   helm install slotify ./slotify-chart -f custom-values.yaml
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Global Configuration
+# ------------------------------------------------------------------------------
+global:
+  # Namespace where all resources will be created
+  namespace: slotify
+  
+  # Domain/host for Ingress rules
+  domain: 127.0.0.1
+
+# ------------------------------------------------------------------------------
+# Secrets Configuration
+# ------------------------------------------------------------------------------
+secrets:
+  # PostgreSQL credentials
+  postgresUser: "user"
+  postgresPassword: "password"
+  postgresDatabase: "slotify"
+  
+  # JWT Secret Key (shared across all services)
+  jwtSecretKey: "super-secret-jwt-key-change-in-production"
+
+# ------------------------------------------------------------------------------
+# Common Environment Variables (Shared Across Services)
+# ------------------------------------------------------------------------------
+commonEnv:
+  # Flask environment
+  flaskEnv: "production"
+  logLevel: "INFO"
+  
+  # Service URLs (inter-service communication)
+  authServiceUrl: "http://auth-service:5001"
+  logicServiceUrl: "http://logic-service:5002"
+  dbServiceUrl: "http://db-service:5003"
+  
+  # PostgreSQL connection
+  postgresHost: "postgres"
+  postgresPort: "5432"
+
+# ------------------------------------------------------------------------------
+# PostgreSQL Database Configuration
+# ------------------------------------------------------------------------------
+postgres:
+  # Enable/disable PostgreSQL deployment
+  enabled: true
+  
+  # Docker image
+  image:
+    repository: postgres
+    tag: "15-alpine"
+    pullPolicy: IfNotPresent
+  
+  # Number of replicas (keep at 1 for database)
+  replicas: 1
+  
+  # Service configuration
+  service:
+    name: postgres
+    type: ClusterIP
+    port: 5432
+    targetPort: 5432
+  
+  # NOTE: Database credentials are defined in 'secrets' section at the top
+  # Templates will use: {{ .Values.secrets.postgresUser }}, {{ .Values.secrets.postgresPassword }}, etc.
+  
+  # Persistent storage
+  persistence:
+    enabled: true
+    storageClass: standard
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    # Existing PVC name (leave empty to create new)
+    existingClaim: ""
+  
+  # Resource limits
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# ------------------------------------------------------------------------------
+# Adminer (Database Management UI) Configuration
+# ------------------------------------------------------------------------------
+adminer:
+  # Enable/disable Adminer deployment
+  enabled: true
+  
+  # Docker image
+  image:
+    repository: adminer
+    tag: latest
+    pullPolicy: IfNotPresent
+  
+  # Number of replicas
+  replicas: 1
+  
+  # Service configuration
+  service:
+    name: adminer
+    type: LoadBalancer
+    port: 8081
+    targetPort: 8080
+  
+  # Resource limits
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "200m"
+
+# ------------------------------------------------------------------------------
+# Authentication Service Configuration
+# ------------------------------------------------------------------------------
+authService:
+  # Enable/disable auth service
+  enabled: true
+  
+  # Docker image
+  image:
+    repository: alexnv67/auth-service
+    tag: latest
+    pullPolicy: Always
+  
+  # Number of replicas (horizontal scaling)
+  replicas: 2
+  
+  # Service configuration
+  service:
+    name: auth-service
+    type: ClusterIP
+    port: 5001
+    targetPort: 5001
+  
+  # Environment variables
+  # NOTE: Common env vars are in 'commonEnv' section at the top
+  # Templates will inject them automatically. Add overrides here only if needed:
+  env: {}
+    # Example override: flaskEnv: "development"
+  
+  # Resource limits
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+  
+  # Health check probes
+  livenessProbe:
+    enabled: true
+    path: /auth/health
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  
+  readinessProbe:
+    enabled: true
+    path: /auth/health
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+
+# ------------------------------------------------------------------------------
+# Business Logic Service Configuration
+# ------------------------------------------------------------------------------
+logicService:
+  # Enable/disable logic service
+  enabled: true
+  
+  # Docker image
+  image:
+    repository: alexnv67/logic-service
+    tag: latest
+    pullPolicy: Always
+  
+  # Number of replicas
+  replicas: 2
+  
+  # Service configuration
+  service:
+    name: logic-service
+    type: ClusterIP
+    port: 5002
+    targetPort: 5002
+  
+  # Environment variables
+  # NOTE: Common env vars are in 'commonEnv' section at the top
+  # Templates will inject them automatically. Add overrides here only if needed:
+  env: {}
+    # Example override: logLevel: "DEBUG"
+  
+  # Resource limits
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+  
+  # Health check probes
+  livenessProbe:
+    enabled: true
+    path: /health
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  
+  readinessProbe:
+    enabled: true
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+
+# ------------------------------------------------------------------------------
+# Database Interaction Service Configuration
+# ------------------------------------------------------------------------------
+dbService:
+  # Enable/disable db service
+  enabled: true
+  
+  # Docker image
+  image:
+    repository: alexnv67/db-service
+    tag: latest
+    pullPolicy: Always
+  
+  # Number of replicas
+  replicas: 2
+  
+  # Service configuration
+  service:
+    name: db-service
+    type: ClusterIP
+    port: 5003
+    targetPort: 5003
+  
+  # Environment variables
+  # NOTE: Common env vars are in 'commonEnv' section at the top
+  # Templates will inject them automatically. Add overrides here only if needed:
+  env: {}
+    # Example override: logLevel: "DEBUG"
+  
+  # Resource limits
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
+  
+  # Health check probes
+  livenessProbe:
+    enabled: true
+    path: /health
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  
+  readinessProbe:
+    enabled: true
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+
+# ------------------------------------------------------------------------------
+# Ingress Configuration (Routing Rules)
+# ------------------------------------------------------------------------------
+ingress:
+  # Enable/disable Ingress
+  enabled: true
+  
+  # Ingress class (use nginx for Minikube)
+  className: nginx
+  
+  # Annotations
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+  
+  # Host configuration
+  host: 127.0.0.1
+  
+  # Path routing rules
+  paths:
+    # Authentication Service
+    - path: /auth(/|$)(.*)
+      pathType: ImplementationSpecific
+      service: auth-service
+      port: 5001
+    
+    # Business Logic Service - specific paths
+    - path: /services(/|$)(.*)
+      pathType: ImplementationSpecific
+      service: logic-service
+      port: 5002
+    
+    - path: /appointments(/|$)(.*)
+      pathType: ImplementationSpecific
+      service: logic-service
+      port: 5002
+    
+    - path: /availability(/|$)(.*)
+      pathType: ImplementationSpecific
+      service: logic-service
+      port: 5002
+    
+    - path: /staff(/|$)(.*)
+      pathType: ImplementationSpecific
+      service: logic-service
+      port: 5002
+    
+    - path: /profile(/|$)(.*)
+      pathType: ImplementationSpecific
+      service: logic-service
+      port: 5002
+    
+    - path: /available-timeslots(/|$)(.*)
+      pathType: ImplementationSpecific
+      service: logic-service
+      port: 5002
+    
+    # Health check
+    - path: /health
+      pathType: Exact
+      service: logic-service
+      port: 5002
+
+# ------------------------------------------------------------------------------
+# Monitoring Configuration (ServiceMonitors for Prometheus)
+# ------------------------------------------------------------------------------
+monitoring:
+  # Enable/disable ServiceMonitor creation
+  # NOTE: Requires Prometheus Operator (kube-prometheus-stack)
+  enabled: true
+  
+  # Scrape interval
+  scrapeInterval: 5s
+  
+  # Metrics endpoint path
+  metricsPath: /metrics
+  
+  # ServiceMonitors for each service
+  serviceMonitors:
+    - name: auth-service-monitor
+      selector:
+        app: auth-service
+      port: http
+    
+    - name: logic-service-monitor
+      selector:
+        app: logic-service
+      port: http
+    
+    - name: db-service-monitor
+      selector:
+        app: db-service
+      port: http
+
+# ------------------------------------------------------------------------------
+# Rancher (Kubernetes Management UI) Configuration
+# ------------------------------------------------------------------------------
+rancher:
+  # Enable/disable Rancher deployment
+  enabled: true  # Set to false to skip Rancher installation
+  
+  # Docker image
+  image:
+    repository: rancher/rancher
+    tag: latest
+    pullPolicy: Always
+  
+  # Number of replicas
+  replicas: 1
+  
+  # Namespace (separate from main app)
+  namespace: cattle-system
+  
+  # Service configuration
+  service:
+    name: rancher
+    type: LoadBalancer
+    httpsPort: 8443
+    httpPort: 8080
+  
+  # Bootstrap password (change in production!)
+  bootstrapPassword: "admin"
+  
+  # Resource limits
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+  
+  # Health check probes
+  livenessProbe:
+    enabled: true
+    path: /healthz
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+  
+  readinessProbe:
+    enabled: true
+    path: /healthz
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# ------------------------------------------------------------------------------
+# Monitoring Stack (Prometheus + Grafana + Alertmanager) Configuration
+# ------------------------------------------------------------------------------
+# This uses the kube-prometheus-stack Helm chart as a dependency
+# Configure the subchart via 'kube-prometheus-stack' section below
+kube-prometheus-stack:
+  # Enable/disable monitoring stack installation
+  enabled: true  # Set to false to skip monitoring installation
+  
+  # Namespace for monitoring components
+  # NOTE: Will be created in 'monitoring' namespace, not 'slotify'
+  namespaceOverride: monitoring
+  
+  # Prometheus Operator configuration
+  prometheusOperator:
+    # Admission webhooks configuration
+    admissionWebhooks:
+      # Disable admission webhooks entirely to avoid installation timing issues
+      enabled: false
+    # Disable TLS for operator web interface (no admission webhook = no TLS secret)
+    tls:
+      enabled: false
+  
+  # Prometheus configuration
+  prometheus:
+    enabled: true
+    prometheusSpec:
+      # Allow Prometheus to discover ServiceMonitors in all namespaces
+      serviceMonitorSelectorNilUsesHelmValues: false
+      # Retention period
+      retention: 7d
+      # Resource limits
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "250m"
+        limits:
+          memory: "1Gi"
+          cpu: "500m"
+    
+    # Expose Prometheus via LoadBalancer
+    service:
+      type: LoadBalancer
+      port: 9090
+  
+  # Grafana configuration
+  grafana:
+    enabled: true
+    # Admin credentials
+    adminPassword: "admin"
+    
+    # Expose Grafana via LoadBalancer
+    service:
+      type: LoadBalancer
+      port: 3000
+    
+    # Resource limits
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
+  
+  # Alertmanager configuration
+  alertmanager:
+    enabled: true
+    
+    # Expose Alertmanager via LoadBalancer
+    service:
+      type: LoadBalancer
+      port: 9093
+    
+    # Resource limits
+    alertmanagerSpec:
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "100m"
+        limits:
+          memory: "256Mi"
+          cpu: "200m"
+
+# ------------------------------------------------------------------------------
+# Common Labels (Applied to All Resources)
+# ------------------------------------------------------------------------------
+commonLabels:
+  app.kubernetes.io/managed-by: Helm
+  app.kubernetes.io/part-of: slotify
+
+# ------------------------------------------------------------------------------
+# Security Context (Pod Security)
+# ------------------------------------------------------------------------------
+securityContext:
+  # Run as non-root user
+  runAsNonRoot: false  # Set to true in production
+  runAsUser: 1000
+  fsGroup: 1000
+
+# ------------------------------------------------------------------------------
+# Notes
+# ------------------------------------------------------------------------------
+# CONFIGURATION STRUCTURE:
+# - 'secrets' section: All sensitive data (passwords, JWT keys) centralized here
+# - 'commonEnv' section: Shared environment variables across all services
+# - Service sections (authService, logicService, dbService): Service-specific config
+#   - 'env: {}' means they inherit from commonEnv (can override specific values)

@@ -1,0 +1,83 @@
+{{- if .Values.dbService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: db-service
+    {{- range $key, $value := .Values.commonLabels }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.dbService.replicas }}
+  selector:
+    matchLabels:
+      app: db-service
+  template:
+    metadata:
+      labels:
+        app: db-service
+    spec:
+      containers:
+      - name: db-service
+        image: {{ .Values.dbService.image.repository }}:{{ .Values.dbService.image.tag }}
+        imagePullPolicy: {{ .Values.dbService.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.dbService.service.targetPort }}
+          name: http
+        env:
+        - name: FLASK_ENV
+          value: {{ .Values.commonEnv.flaskEnv | quote }}
+        - name: LOG_LEVEL
+          value: {{ .Values.commonEnv.logLevel | quote }}
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: slotify-secrets
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: slotify-secrets
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: slotify-secrets
+              key: POSTGRES_DB
+        - name: POSTGRES_HOST
+          value: {{ .Values.commonEnv.postgresHost | quote }}
+        - name: POSTGRES_PORT
+          value: {{ .Values.commonEnv.postgresPort | quote }}
+        {{- range $key, $value := .Values.dbService.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- if .Values.dbService.livenessProbe.enabled }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.dbService.livenessProbe.path }}
+            port: {{ .Values.dbService.service.targetPort }}
+          initialDelaySeconds: {{ .Values.dbService.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.dbService.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.dbService.livenessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.dbService.livenessProbe.failureThreshold }}
+        {{- end }}
+        {{- if .Values.dbService.readinessProbe.enabled }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.dbService.readinessProbe.path }}
+            port: {{ .Values.dbService.service.targetPort }}
+          initialDelaySeconds: {{ .Values.dbService.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.dbService.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.dbService.readinessProbe.timeoutSeconds }}
+        {{- end }}
+        resources:
+          requests:
+            memory: {{ .Values.dbService.resources.requests.memory }}
+            cpu: {{ .Values.dbService.resources.requests.cpu }}
+          limits:
+            memory: {{ .Values.dbService.resources.limits.memory }}
+            cpu: {{ .Values.dbService.resources.limits.cpu }}
+{{- end }}

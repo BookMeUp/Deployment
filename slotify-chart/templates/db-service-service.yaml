@@ -1,0 +1,21 @@
+{{- if .Values.dbService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.dbService.service.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: db-service
+    {{- range $key, $value := .Values.commonLabels }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+spec:
+  type: {{ .Values.dbService.service.type }}
+  selector:
+    app: db-service
+  ports:
+  - port: {{ .Values.dbService.service.port }}
+    targetPort: {{ .Values.dbService.service.targetPort }}
+    protocol: TCP
+    name: http
+{{- end }}

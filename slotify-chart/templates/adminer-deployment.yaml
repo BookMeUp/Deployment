@@ -1,0 +1,39 @@
+{{- if .Values.adminer.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adminer
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: adminer
+    {{- range $key, $value := .Values.commonLabels }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.adminer.replicas }}
+  selector:
+    matchLabels:
+      app: adminer
+  template:
+    metadata:
+      labels:
+        app: adminer
+    spec:
+      containers:
+      - name: adminer
+        image: {{ .Values.adminer.image.repository }}:{{ .Values.adminer.image.tag }}
+        imagePullPolicy: {{ .Values.adminer.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.adminer.service.targetPort }}
+          name: http
+        env:
+        - name: ADMINER_DEFAULT_SERVER
+          value: {{ .Values.postgres.service.name | quote }}
+        resources:
+          requests:
+            memory: {{ .Values.adminer.resources.requests.memory }}
+            cpu: {{ .Values.adminer.resources.requests.cpu }}
+          limits:
+            memory: {{ .Values.adminer.resources.limits.memory }}
+            cpu: {{ .Values.adminer.resources.limits.cpu }}
+{{- end }}

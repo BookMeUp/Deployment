@@ -1,0 +1,28 @@
+{{- if .Values.rancher.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rancher
+  namespace: {{ .Values.rancher.namespace }}
+  labels:
+    {{- range $key, $value := .Values.commonLabels }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rancher
+  labels:
+    {{- range $key, $value := .Values.commonLabels }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: rancher
+  namespace: {{ .Values.rancher.namespace }}
+{{- end }}

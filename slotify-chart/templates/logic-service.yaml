@@ -1,0 +1,21 @@
+{{- if .Values.logicService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.logicService.service.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: logic-service
+    {{- range $key, $value := .Values.commonLabels }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+spec:
+  type: {{ .Values.logicService.service.type }}
+  selector:
+    app: logic-service
+  ports:
+  - port: {{ .Values.logicService.service.port }}
+    targetPort: {{ .Values.logicService.service.targetPort }}
+    protocol: TCP
+    name: http
+{{- end }}

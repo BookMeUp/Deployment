@@ -1,0 +1,21 @@
+{{- if .Values.authService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.authService.service.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: auth-service
+    {{- range $key, $value := .Values.commonLabels }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+spec:
+  type: {{ .Values.authService.service.type }}
+  selector:
+    app: auth-service
+  ports:
+  - port: {{ .Values.authService.service.port }}
+    targetPort: {{ .Values.authService.service.targetPort }}
+    protocol: TCP
+    name: http
+{{- end }}

@@ -1,0 +1,27 @@
+{{- if .Values.monitoring.enabled }}
+{{- range .Values.monitoring.serviceMonitors }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Values.global.namespace }}
+  labels:
+    {{- range $key, $value := .selector }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+    {{- range $key, $value := $.Values.commonLabels }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- range $key, $value := .selector }}
+      {{ $key }}: {{ $value }}
+      {{- end }}
+  endpoints:
+  - port: {{ .port }}
+    path: {{ $.Values.monitoring.metricsPath }}
+    interval: {{ $.Values.monitoring.scrapeInterval }}
+{{- end }}
+{{- end }}
